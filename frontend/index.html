@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПКК Сервис</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка с информацией пользователя -->
+        <div id="header" style="display: none;">
+            <div class="user-info">
+                <h2 id="user-name"></h2>
+                <p>Город: <span id="user-city"></span></p>
+                <p>Статус: <span id="user-role"></span></p>
+                <p>Бонусы: <span id="user-bonuses">0</span></p>
+            </div>
+            
+            <!-- Блок акций (интерактивный) -->
+            <div class="promotions">
+                <h3>🔥 Актуальные акции</h3>
+                <div id="promo-list">
+                    <p>Загрузка акций...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Форма регистрации -->
+        <div id="registration-form">
+            <h1>ПКК Сервис</h1>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" required placeholder="Введите ваше имя">
+                
+                <label for="city">Город:</label>
+                <select id="city" name="city" required>
+                    <option value="">Выберите город</option>
+                </select>
+                
+                <label for="role">Аккаунт:</label>
+                <select id="role" name="role" required>
+                    <option value="">Выберите тип аккаунта</option>
+                </select>
+                
+                <button type="submit" class="btn">Зарегистрироваться</button>
+            </form>
+            <p id="error-message" style="color: red; display: none;"></p>
+        </div>
+        
+        <!-- Личный кабинет с кнопками -->
+        <div id="dashboard" style="display: none;">
+            <h1>Личный кабинет</h1>
+            
+            <div class="menu-grid">
+                <button class="btn menu-btn" onclick="showSection('new-calculation')">Новый расчет</button>
+                <button class="btn menu-btn" onclick="showSection('calculation-history')">История расчетов</button>
+                <button class="btn menu-btn" onclick="showSection('order-history')">История заказов</button>
+                <button class="btn menu-btn" onclick="showSection('catalog')">Каталог стройматериалов</button>
+                <button class="btn menu-btn" onclick="showSection('delivery')">Заказ доставки</button>
+                <button class="btn menu-btn" onclick="showSection('measurement')">Вызвать специалиста на замер</button>
+                <button class="btn menu-btn" onclick="showSection('bonuses')">Управление бонусами</button>
+                <button class="btn menu-btn" onclick="showSection('support')">Служба поддержки</button>
+                <button class="btn menu-btn" onclick="showSection('language')">Выбор языка</button>
+            </div>
+        </div>
+        
+        <!-- Разделы приложения (пока заглушки) -->
+        <div id="sections" style="display: none;">
+            <div class="navigation">
+                <button class="btn nav-btn" onclick="goHome()">🏠 Домой</button>
+                <button class="btn nav-btn" onclick="goBack()">← Назад</button>
+            </div>
+            
+            <div id="section-content">
+                <!-- Здесь будет отображаться содержимое выбранного раздела -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Услуги и продажу товаров оказывают - ООО "Первая кровельная компания" и ИП Свирко Андрей Борисович.</p>
+            <p>Обработка данных, а так же создание и поддержка приложения - ООО "Объект 12"</p>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

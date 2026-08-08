@@ -1,0 +1,189 @@
+/* Базовые стили */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f7; /* Светло-серый фон, не белый и не яркий */
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease; /* Плавный переход */
+    margin: 5px;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px); /* Легкое поднятие при наведении */
+}
+
+.btn:active {
+    transform: translateY(1px); /* Эффект нажатия */
+}
+
+/* Поля ввода */
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+/* Подвал */
+.footer {
+    text-align: center;
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Сетка меню */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.menu-btn {
+    padding: 20px;
+    font-size: 16px;
+    text-align: center;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: 2px solid #bdc3c7;
+}
+
+.menu-btn:hover {
+    background-color: #d5dbdb;
+    border-color: #3498db;
+}
+
+/* Навигация */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.nav-btn {
+    background-color: #95a5a6;
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+.nav-btn:hover {
+    background-color: #7f8c8d;
+}
+
+/* Информация о пользователе */
+.user-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.user-info h2 {
+    margin: 0 0 10px 0;
+}
+
+.user-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* Блок акций */
+.promotions {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.promotions h3 {
+    margin: 0 0 10px 0;
+    color: #856404;
+}
+
+.description {
+    color: #555;
+    font-style: italic;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-left: 4px solid #3498db;
+}
+
+.calc-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.result-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+}
+
+.result-box h3 {
+    margin-top: 0;
+    color: #2e7d32;
+}
