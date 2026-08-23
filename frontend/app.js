@@ -1,8 +1,7 @@
-// Для работы и локально, и на Vercel используем относительный путь /api
-// Браузер сам подставит текущий домен
+// URL нашего сервера (относительный путь для работы на Vercel и локально)
 const API_URL = '/api'; 
 
-// Номер телефона (в реальном приложении будет браться из MAX)
+// Номер телефона (в реальном приложении будет браться из MAX или вводиться пользователем)
 const USER_PHONE = '+79001234567';
 
 // История навигации для кнопки "Назад"
@@ -12,7 +11,7 @@ let currentSection = null;
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Приложение ПКК Сервис загружено');
     
-    // Загружаем списки городов и ролей
+    // Загружаем списки городов и ролей для формы регистрации
     await loadCities();
     await loadRoles();
     
@@ -20,7 +19,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkExistingUser();
     
     // Обработчик отправки формы регистрации
-    document.getElementById('registerForm').addEventListener('submit', handleRegistration);
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegistration);
+    }
 });
 
 // Проверка существующего пользователя
@@ -34,12 +36,14 @@ async function checkExistingUser() {
             showDashboard(data.user);
         } else {
             // Пользователь не найден - показываем форму регистрации
-            document.getElementById('registration-form').style.display = 'block';
+            const regForm = document.getElementById('registration-form');
+            if (regForm) regForm.style.display = 'block';
         }
     } catch (error) {
         console.error('Ошибка проверки пользователя:', error);
         // При ошибке показываем форму регистрации
-        document.getElementById('registration-form').style.display = 'block';
+        const regForm = document.getElementById('registration-form');
+        if (regForm) regForm.style.display = 'block';
     }
 }
 
@@ -47,15 +51,20 @@ async function checkExistingUser() {
 async function loadCities() {
     try {
         const response = await fetch(`${API_URL}/auth/cities`);
-        const data = await response.json();
+        if (!response.ok) throw new Error('Failed to fetch cities');
         
+        const data = await response.json();
         const citySelect = document.getElementById('city');
-        data.cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            citySelect.appendChild(option);
-        });
+        
+        if (citySelect) {
+            citySelect.innerHTML = '<option value="">Выберите город</option>';
+            data.cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Ошибка загрузки городов:', error);
     }
@@ -65,14 +74,19 @@ async function loadCities() {
 async function loadRoles() {
     try {
         const response = await fetch(`${API_URL}/auth/roles`);
-        const data = await response.json();
+        if (!response.ok) throw new Error('Failed to fetch roles');
         
+        const data = await response.json();
         const roleSelect = document.getElementById('role');
-        for (const [key, value] of Object.entries(data.roles)) {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = value;
-            roleSelect.appendChild(option);
+        
+        if (roleSelect) {
+            roleSelect.innerHTML = '<option value="">Выберите статус</option>';
+            for (const [code, name] of Object.entries(data.roles)) {
+                const option = document.createElement('option');
+                option.value = code; // Сохраняем код (retail), показываем имя
+                option.textContent = name;
+                roleSelect.appendChild(option);
+            }
         }
     } catch (error) {
         console.error('Ошибка загрузки ролей:', error);
@@ -83,10 +97,16 @@ async function loadRoles() {
 async function handleRegistration(event) {
     event.preventDefault();
     
-    const name = document.getElementById('name').value;
-    const city = document.getElementById('city').value;
-    const role = document.getElementById('role').value;
+    const nameInput = document.getElementById('name');
+    const cityInput = document.getElementById('city');
+    const roleInput = document.getElementById('role');
     const errorMessage = document.getElementById('error-message');
+    
+    if (!nameInput || !cityInput || !roleInput) return;
+
+    const name = nameInput.value;
+    const city = cityInput.value;
+    const role = roleInput.value;
     
     try {
         const response = await fetch(`${API_URL}/auth/register`, {
@@ -109,24 +129,39 @@ async function handleRegistration(event) {
             showDashboard(data.user);
         } else {
             // Ошибка - показываем сообщение
-            errorMessage.textContent = data.error || 'Ошибка регистрации';
-            errorMessage.style.display = 'block';
+            if (errorMessage) {
+                errorMessage.textContent = data.error || 'Ошибка регистрации';
+                errorMessage.style.display = 'block';
+            }
         }
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
-        errorMessage.textContent = 'Ошибка соединения с сервером';
-        errorMessage.style.display = 'block';
+        if (errorMessage) {
+            errorMessage.textContent = 'Ошибка соединения с сервером';
+            errorMessage.style.display = 'block';
+        }
     }
 }
 
 // Показ личного кабинета
 function showDashboard(user) {
-    document.getElementById('registration-form').style.display = 'none';
-    document.getElementById('header').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'block';
+    const regForm = document.getElementById('registration-form');
+    const header = document.getElementById('header');
+    const dashboard = document.getElementById('dashboard');
     
-    document.getElementById('user-name').textContent = user.name;
-    document.getElementById('user-city').textContent = user.city;
+    if (regForm) regForm.style.display = 'none';
+    if (header) header.style.display = 'block';
+    if (dashboard) dashboard.style.display = 'block';
+    
+    // Обновляем данные пользователя в интерфейсе
+    const userNameEl = document.getElementById('user-name');
+    const userCityEl = document.getElementById('user-city');
+    const userRoleEl = document.getElementById('user-role');
+    const userBonusesEl = document.getElementById('user-bonuses');
+
+    if (userNameEl) userNameEl.textContent = user.name;
+    if (userCityEl) userCityEl.textContent = user.city;
+    if (userBonusesEl) userBonusesEl.textContent = user.bonuses || 0;
     
     // Преобразуем роль в понятный текст
     const roleNames = {
@@ -134,8 +169,10 @@ function showDashboard(user) {
         'professional': 'Строитель профессионал',
         'dealer': 'Дилер'
     };
-    document.getElementById('user-role').textContent = roleNames[user.role] || user.role;
-    document.getElementById('user-bonuses').textContent = user.bonuses;
+    
+    if (userRoleEl) {
+        userRoleEl.textContent = roleNames[user.role] || user.role;
+    }
     
     // Загружаем акции (пока заглушка)
     loadPromotions();
@@ -144,10 +181,12 @@ function showDashboard(user) {
 // Загрузка акций (заглушка)
 function loadPromotions() {
     const promoList = document.getElementById('promo-list');
-    promoList.innerHTML = `
-        <p>• Скидка 10% на металлочерепицу в Иркутске</p>
-        <p>• Бесплатная доставка при заказе от 50 000 руб</p>
-    `;
+    if (promoList) {
+        promoList.innerHTML = `
+            <p>• Скидка 10% на металлочерепицу в Иркутске</p>
+            <p>• Бесплатная доставка при заказе от 50 000 руб</p>
+        `;
+    }
 }
 
 // Показать раздел
@@ -155,11 +194,16 @@ function showSection(sectionName) {
     navigationHistory.push(currentSection);
     currentSection = sectionName;
     
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('header').style.display = 'none';
-    document.getElementById('sections').style.display = 'block';
+    const dashboard = document.getElementById('dashboard');
+    const header = document.getElementById('header');
+    const sections = document.getElementById('sections');
+    
+    if (dashboard) dashboard.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (sections) sections.style.display = 'block';
     
     const content = document.getElementById('section-content');
+    if (!content) return;
     
     // Логика отображения для "Новый расчет"
     if (sectionName === 'new-calculation') {
@@ -199,6 +243,7 @@ function showSubSection(subSectionName) {
     currentSection = subSectionName;
     
     const content = document.getElementById('section-content');
+    if (!content) return;
     
     if (subSectionName === 'roof-calculation') {
         content.innerHTML = `
@@ -229,6 +274,8 @@ function showSubSection(subSectionName) {
 // Показ формы загрузки файла
 function showUploadForm(calcType, material) {
     const content = document.getElementById('section-content');
+    if (!content) return;
+
     content.innerHTML = `
         <h2>Отправка размеров (${material})</h2>
         <p>Прикрепите фото или схему с размерами. Наш специалист свяжется с вами для уточнения деталей, цвета и толщины.</p>
@@ -261,15 +308,20 @@ async function handleFileUpload(event) {
     const statusEl = document.getElementById('upload-status');
     
     // Добавляем данные пользователя из текущего состояния
-    const userName = document.getElementById('user-name').textContent || 'Неизвестно';
-    const userCity = document.getElementById('user-city').textContent || 'Неизвестно';
+    const userNameEl = document.getElementById('user-name');
+    const userCityEl = document.getElementById('user-city');
+    
+    const userName = userNameEl ? userNameEl.textContent : 'Неизвестно';
+    const userCity = userCityEl ? userCityEl.textContent : 'Неизвестно';
     
     formData.append('user_name', userName);
     formData.append('user_city', userCity);
     formData.append('user_phone', USER_PHONE); 
 
-    statusEl.textContent = 'Отправка...';
-    statusEl.style.color = 'blue';
+    if (statusEl) {
+        statusEl.textContent = 'Отправка...';
+        statusEl.style.color = 'blue';
+    }
 
     try {
         // Отправляем на наш бэкенд
@@ -279,16 +331,20 @@ async function handleFileUpload(event) {
         });
 
         if (response.ok) {
-            statusEl.textContent = '✅ Успешно отправлено! Ожидайте звонка специалиста.';
-            statusEl.style.color = 'green';
+            if (statusEl) {
+                statusEl.textContent = '✅ Успешно отправлено! Ожидайте звонка специалиста.';
+                statusEl.style.color = 'green';
+            }
             form.reset();
         } else {
             throw new Error('Ошибка сервера');
         }
     } catch (error) {
         console.error(error);
-        statusEl.textContent = '❌ Ошибка отправки. Попробуйте позже или позвоните нам.';
-        statusEl.style.color = 'red';
+        if (statusEl) {
+            statusEl.textContent = '❌ Ошибка отправки. Попробуйте позже или позвоните нам.';
+            statusEl.style.color = 'red';
+        }
     }
 }
 
@@ -297,9 +353,13 @@ function goHome() {
     navigationHistory = [];
     currentSection = null;
     
-    document.getElementById('sections').style.display = 'none';
-    document.getElementById('header').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'block';
+    const sections = document.getElementById('sections');
+    const header = document.getElementById('header');
+    const dashboard = document.getElementById('dashboard');
+    
+    if (sections) sections.style.display = 'none';
+    if (header) header.style.display = 'block';
+    if (dashboard) dashboard.style.display = 'block';
 }
 
 // Вернуться назад

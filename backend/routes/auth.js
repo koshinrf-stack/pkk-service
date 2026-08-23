@@ -101,3 +101,70 @@ router.get('/user/:phone', async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/auth/cities - Получение списка городов
+router.get('/cities', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT name FROM cities WHERE is_active = true ORDER BY name');
+        res.json({ cities: result.rows.map(row => row.name) });
+    } catch (error) {
+        console.error('Ошибка получения городов:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// GET /api/auth/roles - Получение списка ролей
+router.get('/roles', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT code, name FROM roles ORDER BY id');
+        // Преобразуем в объект { code: name } для удобства на фронтенде
+        const rolesObj = {};
+        result.rows.forEach(row => {
+            rolesObj[row.code] = row.name;
+        });
+        res.json({ roles: rolesObj });
+    } catch (error) {
+        console.error('Ошибка получения ролей:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// POST /api/auth/register - Регистрация (обновленная версия)
+router.post('/register', async (req, res) => {
+    try {
+        const { phone_number, name, city, role } = req.body;
+
+        // Проверка существования города и роли
+        const cityCheck = await pool.query('SELECT id FROM cities WHERE name = $1', [city]);
+        const roleCheck = await pool.query('SELECT id FROM roles WHERE code = $1', [role]);
+
+        if (cityCheck.rows.length === 0 || roleCheck.rows.length === 0) {
+            return res.status(400).json({ error: 'Неверный город или роль' });
+        }
+
+        // Проверка существования пользователя
+        const existingUser = await pool.query('SELECT * FROM users WHERE phone_number = $1', [phone_number]);
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({ error: 'Пользователь уже существует' });
+        }
+
+        // Создание пользователя
+        const newUser = await pool.query(
+            `INSERT INTO users (phone_number, name, city, role) 
+             VALUES ($1, $2, $3, $4) 
+             RETURNING id, phone_number, name, city, role`,
+            [phone_number, name, city, role]
+        );
+
+        res.status(201).json({
+            message: 'Успешная регистрация',
+            user: newUser.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+module.exports = router;
