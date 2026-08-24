@@ -4,27 +4,27 @@ const { Pool } = require('pg');
 let globalPool;
 
 function getPool() {
+    // Если пул уже создан (функция "разогрета"), возвращаем его
     if (globalPool) {
         return globalPool;
     }
 
     const connectionString = process.env.DATABASE_URL;
-    console.log('--- Создание нового пула соединений БД ---');
+    console.log('--- Инициализация пула соединений БД ---');
 
     globalPool = new Pool({
         connectionString: connectionString,
         ssl: {
             rejectUnauthorized: false // Обязательно для Supabase
         },
-        max: 1, // КРИТИЧНО для Vercel: только 1 соединение на инстанс
-        idleTimeoutMillis: 2000, // Быстро освобождаем соединение
-        connectionTimeoutMillis: 5000 // Не ждем дольше 5 секунд
+        max: 2, // Максимум 2 соединения на инстанс (безопасно для Vercel)
+        idleTimeoutMillis: 10000, // Закрывать бездействие через 10 сек (было 2000, это было слишком агрессивно)
+        connectionTimeoutMillis: 15000 // Даем 15 секунд на установление соединения при холодном старте
     });
 
-    // Тихий тест подключения при создании
-    globalPool.query('SELECT 1')
-        .then(() => console.log('✅ БД успешно подключена и готова!'))
-        .catch(err => console.error('❌ Ошибка начального подключения к БД:', err.message));
+    // Мы убрали тестовый запрос SELECT 1 отсюда.
+    // Первое реальное обращение к базе данных (например, запрос городов) 
+    // само установит соединение и покажет, работает оно или нет, без блокировки старта.
 
     return globalPool;
 }
