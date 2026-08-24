@@ -1,5 +1,5 @@
 // backend/api/index.js
-console.log('!!! ЭТО ВЕРСИЯ КОДА ОТ 24 АВГУСТА 2026 ГОДА !!!'); // <--- МАЯК
+console.log('✅ ЗАГРУЖЕНА АКТУАЛЬНАЯ ВЕРСИЯ КОДА (ИСПРАВЛЕННАЯ)');
 
 const express = require('express');
 const serverless = require('serverless-http');
@@ -9,8 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log('--- ЗАПУСК ФУНКЦИИ VERCEL (ЧИСТАЯ ВЕРСИЯ) ---');
-console.log('DATABASE_URL определен:', !!process.env.DATABASE_URL);
+console.log('--- Инициализация маршрутов ---');
 
 try {
     const authRoutes = require('../routes/auth');
@@ -18,10 +17,9 @@ try {
     
     app.use('/api/auth', authRoutes);
     app.use('/api/catalog', catalogRoutes);
-    console.log('Маршруты успешно подключены');
+    console.log('✅ Маршруты успешно подключены');
 } catch (error) {
-    console.error('=== КРИТИЧЕСКАЯ ОШИБКА ПРИ ИМПОРТЕ МАРШРУТОВ ===');
-    console.error(error.message);
+    console.error('❌ ОШИБКА ПОДКЛЮЧЕНИЯ МАРШРУТОВ:', error.message);
 }
 
 app.get('/', (req, res) => {
