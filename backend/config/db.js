@@ -9,10 +9,10 @@ if (!connectionString) {
 }
 
 const pool = new Pool({
-    connectionString: connectionString,
-    ssl: {
-        rejectUnauthorized: false // Обязательно для Supabase
-    }
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 5000, // Быстрый отказ, если нет связи
+    idleTimeoutMillis: 30000
 });
 
 // Тестовый запрос при инициализации (необязательно, но полезно для логов)
