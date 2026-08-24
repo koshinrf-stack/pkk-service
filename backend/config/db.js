@@ -1,24 +1,32 @@
 // backend/config/db.js
 const { Pool } = require('pg');
 
-const connectionString = process.env.DATABASE_URL;
+let globalPool;
 
-console.log('=== ИНИЦИАЛИЗАЦИЯ БД (Session Mode) ===');
+function getPool() {
+    if (globalPool) {
+        return globalPool;
+    }
 
-const pool = new Pool({
-    connectionString: connectionString,
-    ssl: {
-        rejectUnauthorized: false
-    },
-    max: 1, // Ограничиваем пул одним соединением для Serverless
-    idleTimeoutMillis: 1000, // Быстро закрываем бездействие
-    connectionTimeoutMillis: 5000 // Ждем подключения не более 5 сек
-});
+    const connectionString = process.env.DATABASE_URL;
+    console.log('--- Создание нового пула соединений БД ---');
 
-// Проверка при старте
-pool.query('SELECT NOW()', (err, res) => {
-    if (err) console.error('Ошибка старта БД:', err.message);
-    else console.log('БД готова к работе!');
-});
+    globalPool = new Pool({
+        connectionString: connectionString,
+        ssl: {
+            rejectUnauthorized: false // Обязательно для Supabase
+        },
+        max: 1, // КРИТИЧНО для Vercel: только 1 соединение на инстанс
+        idleTimeoutMillis: 2000, // Быстро освобождаем соединение
+        connectionTimeoutMillis: 5000 // Не ждем дольше 5 секунд
+    });
 
-module.exports = pool;
+    // Тихий тест подключения при создании
+    globalPool.query('SELECT 1')
+        .then(() => console.log('✅ БД успешно подключена и готова!'))
+        .catch(err => console.error('❌ Ошибка начального подключения к БД:', err.message));
+
+    return globalPool;
+}
+
+module.exports = getPool();
