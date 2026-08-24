@@ -1,5 +1,6 @@
 // backend/api/index.js
 const express = require('express');
+const this_is_a_test_error = ; // <--- НАМЕРЕННАЯ ОШИБКА
 const serverless = require('serverless-http');
 const cors = require('cors');
 
