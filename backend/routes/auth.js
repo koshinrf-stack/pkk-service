@@ -2,21 +2,16 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
-// GET /api/auth/cities - Получение списка городов
 router.get('/cities', async (req, res) => {
-    console.log('--- ЗАПРОС /api/auth/cities НАЧАЛСЯ ---');
+    console.log('!!! ДОШЛИ ДО ЗАПРОСА ГОРОДОВ !!!'); // ЭТА СТРОКА ОБЯЗАТЕЛЬНА
     try {
-        console.log('Пытаемся выполнить запрос к БД...');
+        console.log('Делаем запрос к БД...');
         const result = await pool.query('SELECT name FROM cities WHERE is_active = true ORDER BY name');
-        console.log('Запрос выполнен успешно, найдено строк:', result.rows.length);
-        
-        res.json({ cities: result.rows.map(row => row.name) });
-    } catch (error) {
-        console.error('=== ОШИБКА В ЗАПРОСЕ ГОРОДОВ ===');
-        console.error('Сообщение:', error.message);
-        console.error('Детали:', error.detail);
-        console.error('Полный стек:', error.stack);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера при получении городов' });
+        console.log('БД ответила:', result.rows.length, 'строк');
+        res.json({ cities: result.rows.map(r => r.name) });
+    } catch (err) {
+        console.error('!!! ОШИБКА БД !!!', err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
