@@ -1,27 +1,24 @@
+// backend/config/db.js
 const { Pool } = require('pg');
 
 const connectionString = process.env.DATABASE_URL;
-console.log('=== ИНИЦИАЛИЗАЦИЯ БД ===');
-console.log('DATABASE_URL присутствует:', !!connectionString);
 
-if (!connectionString) {
-    console.error('КРИТИЧЕСКАЯ ОШИБКА: DATABASE_URL не определен!');
-}
+console.log('=== ИНИЦИАЛИЗАЦИЯ БД (Session Mode) ===');
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 5000, // Быстрый отказ, если нет связи
-    idleTimeoutMillis: 30000
+    connectionString: connectionString,
+    ssl: {
+        rejectUnauthorized: false
+    },
+    max: 1, // Ограничиваем пул одним соединением для Serverless
+    idleTimeoutMillis: 1000, // Быстро закрываем бездействие
+    connectionTimeoutMillis: 5000 // Ждем подключения не более 5 сек
 });
 
-// Тестовый запрос при инициализации (необязательно, но полезно для логов)
+// Проверка при старте
 pool.query('SELECT NOW()', (err, res) => {
-    if (err) {
-        console.error('=== ОШИБКА ПОДКЛЮЧЕНИЯ К БД ===', err.message);
-    } else {
-        console.log('=== ПОДКЛЮЧЕНИЕ К БД УСПЕШНО ===', res.rows[0].now);
-    }
+    if (err) console.error('Ошибка старта БД:', err.message);
+    else console.log('БД готова к работе!');
 });
 
 module.exports = pool;
