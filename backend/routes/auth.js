@@ -1,71 +1,90 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/db');
+const supabase = require('../config/db');
 
+// GET /api/auth/cities
 router.get('/cities', async (req, res) => {
-    console.log('!!! ДОШЛИ ДО ЗАПРОСА ГОРОДОВ !!!'); // ЭТА СТРОКА ОБЯЗАТЕЛЬНА
+    console.log('!!! ЗАПРОС /cities ПОЛУЧЕН !!!');
     try {
-        console.log('Делаем запрос к БД...');
-        const result = await pool.query('SELECT name FROM cities WHERE is_active = true ORDER BY name');
-        console.log('БД ответила:', result.rows.length, 'строк');
-        res.json({ cities: result.rows.map(r => r.name) });
-    } catch (err) {
-        console.error('!!! ОШИБКА БД !!!', err.message);
-        res.status(500).json({ error: err.message });
+        const { data, error } = await supabase
+            .from('cities')
+            .select('name')
+            .eq('is_active', true)
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        console.log('✅ БД ответила:', data.length, 'строк');
+        res.json({ cities: data.map(row => row.name) });
+        
+    } catch (error) {
+        console.error('❌ ОШИБКА В /cities:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// GET /api/auth/roles - Получение списка ролей
+// GET /api/auth/roles
 router.get('/roles', async (req, res) => {
-    console.log('--- ЗАПРОС /api/auth/roles НАЧАЛСЯ ---');
+    console.log('!!! ЗАПРОС /roles ПОЛУЧЕН !!!');
     try {
-        const result = await pool.query('SELECT code, name FROM roles ORDER BY id');
+        const { data, error } = await supabase
+            .from('roles')
+            .select('code, name');
+
+        if (error) throw error;
+
         const rolesObj = {};
-        result.rows.forEach(row => {
+        data.forEach(row => {
             rolesObj[row.code] = row.name;
         });
+
         res.json({ roles: rolesObj });
+        
     } catch (error) {
-        console.error('=== ОШИБКА В ЗАПРОСЕ РОЛЕЙ ===');
-        console.error('Сообщение:', error.message);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера при получении ролей' });
+        console.error('❌ ОШИБКА В /roles:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// POST /api/auth/register - Регистрация
+// POST /api/auth/register
 router.post('/register', async (req, res) => {
-    console.log('--- ЗАПРОС /api/auth/register НАЧАЛСЯ ---');
+    console.log('!!! ЗАПРОС /register ПОЛУЧЕН !!!');
     try {
         const { phone_number, name, city, role } = req.body;
-        console.log('Данные для регистрации:', { phone_number, name, city, role });
 
         if (!phone_number || !name || !city || !role) {
             return res.status(400).json({ error: 'Заполните все поля' });
         }
 
-        const cityCheck = await pool.query('SELECT id FROM cities WHERE name = $1', [city]);
-        const roleCheck = await pool.query('SELECT id FROM roles WHERE code = $1', [role]);
+        const { data: cityData } = await supabase.from('cities').select('id').eq('name', city).single();
+        const { data: roleData } = await supabase.from('roles').select('id').eq('code', role).single();
 
-        if (cityCheck.rows.length === 0 || roleCheck.rows.length === 0) {
-            return res.status(400).json({ error: 'Выбран неверный город или роль' });
+        if (!cityData || !roleData) {
+            return res.status(400).json({ error: 'Неверный город или роль' });
         }
 
-        const existingUser = await pool.query('SELECT * FROM users WHERE phone_number = $1', [phone_number]);
-        if (existingUser.rows.length > 0) {
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('phone_number', phone_number)
+            .maybeSingle();
+
+        if (existingUser) {
             return res.status(400).json({ error: 'Пользователь уже существует' });
         }
 
-        const newUser = await pool.query(
-            `INSERT INTO users (phone_number, name, city, role, bonuses) 
-             VALUES ($1, $2, $3, $4, 0) 
-             RETURNING id, phone_number, name, city, role, bonuses`,
-            [phone_number, name, city, role]
-        );
+        const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert([{ phone_number, name, city, role, bonuses: 0 }])
+            .select()
+            .single();
 
-        res.status(201).json({ message: 'Успешная регистрация', user: newUser.rows[0] });
+        if (insertError) throw insertError;
+
+        res.status(201).json({ message: 'Успешная регистрация', user: newUser });
+        
     } catch (error) {
-        console.error('=== ОШИБКА ПРИ РЕГИСТРАЦИИ ===');
-        console.error('Сообщение:', error.message);
+        console.error('❌ ОШИБКА ПРИ РЕГИСТРАЦИИ:', error.message);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -74,14 +93,18 @@ router.post('/register', async (req, res) => {
 router.get('/user/:phone', async (req, res) => {
     try {
         const { phone } = req.params;
-        const result = await pool.query('SELECT * FROM users WHERE phone_number = $1', [phone]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Пользователь не найден' });
-        }
-        res.json({ user: result.rows[0] });
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('phone_number', phone)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: 'Пользователь не найден' });
+
+        res.json({ user: data });
     } catch (error) {
-        console.error('=== ОШИБКА ПОИСКА ПОЛЬЗОВАТЕЛЯ ===');
-        console.error('Сообщение:', error.message);
+        console.error('❌ ОШИБКА ПОИСКА ПОЛЬЗОВАТЕЛЯ:', error.message);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
