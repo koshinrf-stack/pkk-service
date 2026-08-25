@@ -11,29 +11,34 @@ app.use((req, res, next) => {
     next();
 });
 
+
+
 app.use(cors());
 app.use(express.json());
 
-// 1. Тестируем СОВЕРШЕННО НОВЫЙ путь
-app.get('/api/test-hello', (req, res) => {
-    console.log('!!! ОТВЕТ ИЗ /api/test-hello !!!');
-    res.json({ message: "ЭТОТ ПУТЬ РАБОТАЕТ!", time: Date.now() });
-});
-
-// 2. Старый путь (для сравнения)
-app.get('/api/auth/cities', (req, res) => {
-    console.log('!!! ОТВЕТ ИЗ /api/auth/cities !!!');
-    res.json({ cities: ["Тест"] });
-});
+// Handle preflight requests for all routes
+app.options('*', cors());
 
 console.log('--- Инициализация маршрутов ---');
 try {
     const authRoutes = require('../routes/auth');
     app.use('/api/auth', authRoutes);
-    console.log('✅ Маршруты подключены');
+    console.log('✅ Маршруты auth подключены');
 } catch (error) {
-    console.error('❌ ОШИБКА:', error.message);
+    console.error('❌ ОШИБКА auth:', error.message);
 }
+
+try {
+    const catalogRoutes = require('../routes/catalog');
+    app.use('/api/catalog', catalogRoutes);
+    console.log('✅ Маршруты catalog подключены');
+} catch (error) {
+    console.error('❌ ОШИБКА catalog:', error.message);
+}
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Root works' });
+});
 
 app.get('/', (req, res) => {
     res.json({ message: 'Root works' });

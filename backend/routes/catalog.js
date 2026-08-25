@@ -8,8 +8,8 @@ const path = require('path');
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Конфигурация MAX Bot (примерные данные, нужно взять из кабинета разработчика MAX)
-const MAX_BOT_TOKEN = 'YOUR_MAX_BOT_TOKEN'; 
-const MAX_GROUP_ID = 'GROUP_ID_FROM_LINK'; // Нужно получить ID группы из ссылки https://max.ru/join/...
+const MAX_BOT_TOKEN = process.env.MAX_BOT_TOKEN;
+const MAX_GROUP_ID = process.env.MAX_GROUP_ID;
 
 // Эндпоинт для приема заявки
 router.post('/upload-request', upload.single('file'), async (req, res) => {

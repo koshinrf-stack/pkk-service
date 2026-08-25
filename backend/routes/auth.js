@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-// const supabase = require('../config/db'); // ВРЕМЕННО ОТКЛЮЧАЕМ
+const supabase = require('../config/db');
 
 // GET /api/auth/cities
 router.get('/cities', async (req, res) => {

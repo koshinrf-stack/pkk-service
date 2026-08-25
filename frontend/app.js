@@ -1,6 +1,6 @@
 // URL нашего сервера (относительный путь для работы на Vercel и локально)
 const API_URL = '/api'; 
-const USER_PHONE = '+79001234567'; // В будущем заменим на ввод номера
+let USER_PHONE = null; // Будет получен из формы регистрации
 
 let navigationHistory = [];
 let currentSection = null;
@@ -24,7 +24,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function checkExistingUser() {
     try {
-        const response = await fetch(`${API_URL}/auth/user/${USER_PHONE}`);
+        const phone = localStorage.getItem('userPhone');
+    if (phone) {
+        const response = await fetch(`${API_URL}/auth/user/${phone}`);
+        if (response.ok) {
+            const data = await response.json();
+            showDashboard(data.user);
+            return;
+        }
+    }
         if (response.ok) {
             const data = await response.json();
             showDashboard(data.user);
